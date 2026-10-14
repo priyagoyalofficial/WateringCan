@@ -85,27 +85,38 @@ function tagHTML(p){
   </article>`;
 }
 
+/* Header boxes double as filters for the Plants tab */
+const FILTERS = {
+  late:  {label:'Overdue',      empty:'No overdue plants right now.',               test:r=>r.ws.kind==='late'},
+  today: {label:'Check today',  empty:'Nothing to check today.',                    test:r=>r.ws.kind==='today'||r.ws.kind==='new'},
+  feed:  {label:'To fertilize', empty:'Nothing to fertilize right now.',            test:r=>r.fs.kind==='due'},
+};
+let plantFilter = null;
+
 function render(){
   const list = showing();
   const rows = list.map(p=>({p, ws:waterStatus(p), fs:feedStatus(p)}));
-  const needs = rows.filter(r=>['late','today','new'].includes(r.ws.kind) || r.fs.kind==='due');
-  const rest = rows.filter(r=>!needs.includes(r)).sort((a,b)=>a.ws.d-b.ws.d);
+  const f = FILTERS[plantFilter];
+  const needs = rows.filter(f ? f.test : r=>['late','today','new'].includes(r.ws.kind) || r.fs.kind==='due');
+  const rest = f ? [] : rows.filter(r=>!needs.includes(r)).sort((a,b)=>a.ws.d-b.ws.d);
   needs.sort((a,b)=>a.ws.d-b.ws.d);
 
+  document.getElementById('h-att').textContent = f ? f.label : 'Needs you today';
+  document.getElementById('clearFilter').hidden = !f;
+  document.getElementById('restSec').hidden = !!f;
   document.getElementById('attention').innerHTML = needs.length ? needs.map(r=>tagHTML(r.p)).join('')
-    : `<p class="empty">Nothing needs you today. Every plant still has moisture left.</p>`;
+    : `<p class="empty">${f ? f.empty : 'Nothing needs you today. Every plant still has moisture left.'}</p>`;
   document.getElementById('rest').innerHTML = rest.length ? rest.map(r=>tagHTML(r.p)).join('')
     : `<p class="empty">${list.length?'Every plant is on today\'s list.':'No plants yet.'}</p>`;
   document.getElementById('att-count').textContent = `${needs.length} of ${list.length}`;
 
-  const late = rows.filter(r=>r.ws.kind==='late').length;
-  const today = rows.filter(r=>r.ws.kind==='today'||r.ws.kind==='new').length;
-  const feed = rows.filter(r=>r.fs.kind==='due').length;
+  const n = k => rows.filter(FILTERS[k].test).length;
+  const box = (k, cls, count, label) =>
+    `<button type="button" class="${cls}" data-filter="${k}" aria-pressed="${plantFilter===k || (k==='all' && !plantFilter)}"
+       title="${k==='all' ? 'Show all plants' : `Show only plants: ${label}`}"><b class="mono">${count}</b><span>${label}</span></button>`;
   document.getElementById('tally').innerHTML =
-    `<div class="t-late"><b class="mono">${late}</b><span>overdue</span></div>
-     <div class="t-today"><b class="mono">${today}</b><span>check today</span></div>
-     <div class="t-feed"><b class="mono">${feed}</b><span>to fertilize</span></div>
-     <div><b class="mono">${list.length}</b><span>plants</span></div>`;
+    box('late','t-late',n('late'),'overdue') + box('today','t-today',n('today'),'check today') +
+    box('feed','t-feed',n('feed'),'to fertilize') + box('all','',list.length,'plants');
   renderCal(list);
   renderDash(list);
 }
@@ -354,6 +365,12 @@ function renderCal(list){
       }).join('')}</ul>`
     : `<p class="empty">${calSel<TODAY?'Nothing was logged this day.':'Nothing planned.'}</p>`);
 }
+function setFilter(k){
+  plantFilter = (k==='all' || k===plantFilter) ? null : k; // clicking the active box again shows everything
+  render(); setTab('plants');
+}
+document.getElementById('tally').addEventListener('click', e=>{ const b=e.target.closest('[data-filter]'); if(b) setFilter(b.dataset.filter); });
+document.getElementById('clearFilter').addEventListener('click', ()=>setFilter('all'));
 function setTab(t){
   document.getElementById('tab-plants').hidden = t!=='plants';
   document.getElementById('tab-cal').hidden = t!=='cal';

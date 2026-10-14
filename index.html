@@ -80,11 +80,12 @@
   <div class="layout">
     <div class="col">
       <section aria-labelledby="h-att">
-        <div class="sec-head"><h2 id="h-att">Needs you today</h2><span class="eyebrow" id="att-count"></span></div>
-        <div class="tags" id="attention"></div>
+        <div class="sec-head"><h2 id="h-att">Needs you today</h2>
+          <span class="sec-r"><span class="eyebrow" id="att-count"></span><button class="btn" type="button" id="clearFilter" hidden>Show all plants</button></span></div>
+        <div class="tags" id="attention" aria-live="polite"></div>
       </section>
 
-      <section aria-labelledby="h-all">
+      <section aria-labelledby="h-all" id="restSec">
         <div class="sec-head"><h2 id="h-all">Everything else</h2><span class="eyebrow">sorted by next check</span></div>
         <div class="tags" id="rest"></div>
       </section>

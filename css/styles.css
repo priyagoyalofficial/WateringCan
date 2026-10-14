@@ -79,7 +79,12 @@ header.top{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end;justif
 .hgroup{display:grid;gap:6px}
 .season{color:var(--muted);max-width:60ch}
 .tally{display:flex;gap:12px;flex-wrap:wrap}
-.tally div{background:var(--surface);border:2px solid var(--line);border-radius:4px;padding:8px 14px;min-width:92px;box-shadow:var(--offset-sm)}
+.tally > *{background:var(--surface);border:2px solid var(--line);border-radius:4px;padding:8px 14px;min-width:92px;box-shadow:var(--offset-sm)}
+.tally button{text-align:left;color:var(--ink);transition:transform .06s ease,box-shadow .06s ease}
+.tally button:hover{background:var(--surface-2)}
+.tally button[aria-pressed=true]{background:var(--surface-2);box-shadow:none;transform:translate(2px,2px);outline:2px solid var(--line);outline-offset:-5px}
+.tally button[data-filter=all][aria-pressed=true]{background:var(--surface);box-shadow:var(--offset-sm);transform:none;outline:0}
+.sec-r{display:flex;align-items:center;gap:10px}
 .tally b{display:block;font-family:var(--display);font-weight:400;font-size:28px;line-height:1.05}
 .tally span{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .tally .t-late b{color:var(--late)} .tally .t-today b{color:var(--today)} .tally .t-feed b{color:var(--feed)}
