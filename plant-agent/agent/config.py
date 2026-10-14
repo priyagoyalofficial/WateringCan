@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
 
-DATA_DIR = ROOT / "data"
+DATA_DIR = ROOT.parent / "data"  # shared with the web app (server.py)
 PLANTS_PATH = DATA_DIR / "plants.json"
 REMINDERS_DIR = DATA_DIR / "reminders"
 LIBRARY_PATH = ROOT / "library" / "species.json"

@@ -97,7 +97,8 @@ The PC has to be on at that time. To stop the reminder: `schtasks /Delete /TN "W
 
 ## Data
 
-- **Plants** are saved in `data/plants.json`. The previous version is kept as `plants.json.bak`, so an unwanted change can be undone.
+- **Plants** are saved in `data/plants.json` in the project folder above this one, the same file the web app uses, so both always show the same plants. The previous version is kept as `plants.json.bak`, so an unwanted change can be undone.
+- **Reminders** are saved in that same `data/reminders/` folder.
 - **`data/` and `.env` are git-ignored.** Your plants and your API key stay out of the repo.
 
 ## Project layout
@@ -108,7 +109,7 @@ agent/
   assistant.py     Claude agent loop and system prompt
   tools.py         agent tools
   care.py          schedule, water-amount and learning rules
-  storage.py       data/plants.json with atomic, revision-checked writes
+  storage.py       ../data/plants.json with atomic, revision-checked writes
   daily.py         morning reminder (daily.bat)
   config.py        settings from .env
 library/species.json   plant library (36 houseplants and patio plants)
