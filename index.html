@@ -27,6 +27,32 @@
   <div class="tabs" role="tablist" aria-label="Views">
     <button type="button" role="tab" id="t-plants" data-tab="plants" aria-controls="tab-plants" aria-selected="true">Plants</button>
     <button type="button" role="tab" id="t-cal" data-tab="cal" aria-controls="tab-cal" aria-selected="false" tabindex="-1">Calendar</button>
+    <button type="button" role="tab" id="t-dash" data-tab="dash" aria-controls="tab-dash" aria-selected="false" tabindex="-1">Dashboard</button>
+  </div>
+
+  <div id="tab-dash" role="tabpanel" aria-labelledby="t-dash" hidden>
+    <div class="dash">
+      <p class="banner" id="dashNote" hidden>Showing the example plants. Add your own and the dashboard switches to them.</p>
+      <div class="tally stats" id="dashStats"></div>
+      <div class="dashgrid">
+        <section class="panel" aria-labelledby="h-hyd">
+          <div class="sec-head"><h2 id="h-hyd">Hydration</h2><span class="eyebrow">share of plants</span></div>
+          <div class="donutwrap">
+            <div class="donut" id="donut"></div>
+            <table class="dlegend" id="donutLegend"></table>
+          </div>
+          <p class="meta">Based on each plant's estimated soil moisture. Hydrated includes plants you checked and found still damp.</p>
+        </section>
+        <section class="panel" aria-labelledby="h-moist">
+          <div class="sec-head"><h2 id="h-moist">Moisture left</h2><span class="eyebrow">driest first</span></div>
+          <div class="bars" id="moistBars"></div>
+        </section>
+      </div>
+      <section class="panel" aria-labelledby="h-attn">
+        <div class="sec-head"><h2 id="h-attn">Needs your attention</h2><span class="eyebrow" id="attnCount"></span></div>
+        <ul class="hist" id="attnList"></ul>
+      </section>
+    </div>
   </div>
 
   <div id="tab-cal" role="tabpanel" aria-labelledby="t-cal" hidden>
@@ -151,6 +177,7 @@
 
 <script src="js/store.js"></script>
 <script src="js/care.js"></script>
+<script src="js/dash.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -109,6 +109,7 @@ function render(){
      <div class="t-feed"><b class="mono">${feed}</b><span>to fertilize</span></div>
      <div><b class="mono">${list.length}</b><span>plants</span></div>`;
   renderCal(list);
+  renderDash(list);
 }
 
 
@@ -358,6 +359,7 @@ function renderCal(list){
 function setTab(t){
   document.getElementById('tab-plants').hidden = t!=='plants';
   document.getElementById('tab-cal').hidden = t!=='cal';
+  document.getElementById('tab-dash').hidden = t!=='dash';
   document.querySelectorAll('.tabs [role=tab]').forEach(b=>{ const on=b.dataset.tab===t; b.setAttribute('aria-selected', on); b.tabIndex = on?0:-1; });
   try{ localStorage.setItem('wc-tab', t); }catch(_){}
 }
@@ -378,7 +380,7 @@ document.getElementById('tab-cal').addEventListener('click', e=>{
   const day = e.target.closest('[data-day]'); if (day){ calSel = day.dataset.day; return render(); }
   const op = e.target.closest('[data-open]'); if (op) openSheet(op.dataset.open);
 });
-(()=>{ let t='plants'; try{ t = localStorage.getItem('wc-tab')||t; }catch(_){} if (location.hash==='#calendar') t='cal'; setTab(t==='cal'?'cal':'plants'); })();
+(()=>{ let t='plants'; try{ t = localStorage.getItem('wc-tab')||t; }catch(_){} if (location.hash==='#calendar') t='cal'; if (location.hash==='#dashboard') t='dash'; setTab(['cal','dash'].includes(t)?t:'plants'); })();
 
 /* ---------- backup & restore ---------- */
 const dataMsg = document.getElementById('dataMsg');

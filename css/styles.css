@@ -137,6 +137,7 @@ section{display:grid;gap:14px;min-width:0}
 .tabs [role=tab]{border:0;background:transparent;padding:10px 16px 8px;font-family:var(--display);font-weight:400;font-size:18px;color:var(--muted);border-bottom:5px solid transparent;margin-bottom:-2px}
 .tabs [role=tab]:hover{color:var(--ink)}
 .tabs [role=tab][aria-selected=true]{color:var(--ink);border-bottom-color:var(--water)}
+@media (max-width:480px){.tabs [role=tab]{padding-inline:9px;font-size:16px}}
 
 /* month calendar */
 .calwrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
@@ -213,4 +214,40 @@ details.tips summary{cursor:pointer;font-family:var(--display);font-weight:400;f
 .hist .k{font-weight:700}
 .hist .k.water{color:var(--water)} .hist .k.feed{color:var(--feed)} .hist .k.skip{color:var(--muted)}
 .tuned{font-size:13px;color:var(--muted)}
+/* dashboard: status colors match the moisture gauges on the plant cards; each also carries an icon + label */
+:root{--dz-ok:var(--gauge);--dz-today:var(--gauge-warn);--dz-late:var(--water);--dz-new:#9A927C}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--dz-new:#7A819F}}
+:root[data-theme="dark"]{--dz-new:#7A819F}
+.dash{display:grid;gap:22px}
+.stats div{flex:1 1 140px}
+.stats .st-ok b{color:var(--ok)} .stats .st-late b{color:var(--late)} .stats .st-feed b{color:var(--feed)}
+.dashgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:900px){.dashgrid{grid-template-columns:minmax(0,1fr)}}
+.donutwrap{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.donut{flex:0 0 190px;max-width:100%}
+.donut svg{display:block;width:100%;height:auto}
+.donut path,.donut circle{stroke:var(--surface);stroke-width:2;transition:opacity .15s}
+.donut circle{stroke-width:30}
+.donut svg:hover [data-tip]:not(:hover){opacity:.45}
+.d-big{font-family:var(--display);font-size:34px;fill:var(--ink);text-anchor:middle}
+.d-sub{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;fill:var(--muted);text-anchor:middle}
+.seg-ok{fill:var(--dz-ok)} .seg-today{fill:var(--dz-today)} .seg-late{fill:var(--dz-late)} .seg-new{fill:var(--dz-new)}
+circle.seg-ok{stroke:var(--dz-ok)} circle.seg-today{stroke:var(--dz-today)} circle.seg-late{stroke:var(--dz-late)} circle.seg-new{stroke:var(--dz-new)}
+.dlegend{flex:1 1 200px;border-collapse:collapse;font-size:14px}
+.dlegend th{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 6px 6px}
+.dlegend td{padding:5px 6px;border-top:1.5px solid var(--line-soft)}
+.dlegend td+td,.dlegend th+th{text-align:right}
+.sw{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:4px;margin-right:8px;font-size:11px;font-weight:700;vertical-align:-3px;color:var(--on-water)}
+.lg-ok .sw{background:var(--dz-ok)} .lg-today .sw{background:var(--dz-today);color:#1B2340} .lg-late .sw{background:var(--dz-late)} .lg-new .sw{background:var(--dz-new)}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;font-size:14px;padding:2px 0}
+.bn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bv{font-size:13px;color:var(--muted)}
+.bt{grid-column:1/-1;height:10px;border-radius:4px;background:var(--surface-2)}
+.bt i{display:block;height:100%;border-radius:4px;transition:width .5s ease}
+.b-ok .bt i{background:var(--dz-ok)} .b-today .bt i{background:var(--dz-today)} .b-late .bt i{background:var(--dz-late)}
+.b-new .bt{background:transparent;border:1.5px dashed var(--dz-new)}
+.bar:hover .bn{text-decoration:underline}
+.hist .k.late{color:var(--late)} .hist .k.today{color:var(--today)}
+.dtip{position:fixed;z-index:30;max-width:260px;pointer-events:none;background:var(--ink);color:var(--surface);font-size:13px;padding:6px 9px;border-radius:4px;box-shadow:var(--offset-sm)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
