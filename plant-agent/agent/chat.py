@@ -5,8 +5,10 @@
 
 In the chat:
     /photo PATH [message]   send a photo of a plant, e.g. /photo C:\\pics\\fig.jpg brown spots on my fiddle leaf
-    /plants                 quick list of what's due (no AI call)
-    /new                    start a new conversation
+    /plants [overdue|today|fertilize]
+                            quick list of what's due, optionally filtered like the web app's header boxes (no AI call)
+    /dashboard              hydration percentages and counts, like the web app's Dashboard tab (no AI call)
+    /new                   start a new conversation
     /quit                   exit
 """
 from __future__ import annotations
@@ -41,16 +43,42 @@ def load_photo(path_text: str) -> dict:
     return {"media_type": media_type, "data": base64.standard_b64encode(data).decode("ascii")}
 
 
-def print_due() -> None:
+PLANT_FILTERS = {"overdue": "overdue", "today": "check_today", "fertilize": "fertilize"}
+
+
+def print_due(which: str = "") -> None:
     today = date.today().isoformat()
     plants = storage.read()["plants"]
     if not plants:
         print("No plants yet. Tell me about one, e.g. 'I have a pothos in a 6-inch plastic pot by the kitchen window.'")
         return
+    if which:
+        if which not in PLANT_FILTERS:
+            print(f"Use /plants, or /plants with one of: {', '.join(PLANT_FILTERS)}")
+            return
+        plants = [p for p in plants if care.FILTERS[PLANT_FILTERS[which]](p, today)]
+        if not plants:
+            print(f"  No plants match '{which}' right now.")
+            return
     rows = sorted(plants, key=lambda p: care.water_status(p, today)["d"])
     for p in rows:
         fed = care.feed_status(p, today)["kind"] == "due"
         print(f"  {p['name']}: {care.status_text(p, today)}; {care.amount(p)['short'].lower()}" + ("; fertilizer due" if fed else ""))
+
+
+def print_dashboard() -> None:
+    today = date.today().isoformat()
+    ov = care.overview(storage.read()["plants"], today)
+    if not ov["total_plants"]:
+        print("No plants yet.")
+        return
+    print(f"  {ov['hydrated_percent']}% hydrated · {ov['need_attention']} of {ov['total_plants']} need attention "
+          f"({ov['need_attention_percent']}%)")
+    for h in ov["hydration"]:
+        print(f"  {h['label']}: {h['plants']} ({h['percent']}%)")
+    avg = ov["avg_moisture_left_percent"]
+    print(f"  Overdue {ov['overdue']} · check today {ov['check_today']} · to fertilize {ov['to_fertilize']}"
+          f" · average moisture left {'–' if avg is None else f'{avg}%'}")
 
 
 def import_backup(file: str) -> int:
@@ -86,7 +114,7 @@ def main() -> int:
         return 1
 
     print("Watering Can. Tell me what you did or ask about your plants.")
-    print("Commands: /photo PATH [message], /plants, /new, /quit\n")
+    print("Commands: /photo PATH [message], /plants [overdue|today|fertilize], /dashboard, /new, /quit\n")
     history: list[dict] = []
     while True:
         try:
@@ -102,8 +130,12 @@ def main() -> int:
             history = []
             print("Started a new conversation.\n")
             continue
-        if line == "/plants":
-            print_due()
+        if line == "/plants" or line.startswith("/plants "):
+            print_due(line[len("/plants"):].strip().lower())
+            print()
+            continue
+        if line == "/dashboard":
+            print_dashboard()
             print()
             continue
 

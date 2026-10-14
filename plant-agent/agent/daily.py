@@ -31,8 +31,14 @@ def due_lists(plants: list[dict], today: str) -> tuple[list[str], list[str], lis
     return check, feed, tomorrow
 
 
-def plain_summary(check: list[str], feed: list[str], tomorrow: list[str]) -> str:
-    parts = []
+def overview_line(plants: list[dict], today: str) -> str:
+    ov = care.overview(plants, today)
+    return (f"Your plants: {ov['hydrated_percent']}% hydrated, {ov['need_attention']} of {ov['total_plants']} "
+            f"need attention ({ov['overdue']} overdue).")
+
+
+def plain_summary(check: list[str], feed: list[str], tomorrow: list[str], header: str = "") -> str:
+    parts = [header] if header else []
     parts.append("Check the soil today:\n" + "\n".join(f"- {c}" for c in check) if check else "Nothing needs a soil check today.")
     if feed:
         parts.append("Fertilize (half strength, onto damp soil): " + ", ".join(feed))
@@ -65,7 +71,7 @@ def main() -> int:
         return 0
 
     check, feed, tomorrow = due_lists(plants, today)
-    summary = plain_summary(check, feed, tomorrow)
+    summary = plain_summary(check, feed, tomorrow, overview_line(plants, today))
     body = summary
     if config.api_key_configured() and not args.no_ai:
         try:

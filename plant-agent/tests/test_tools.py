@@ -61,3 +61,27 @@ def test_remove_needs_confirmation(data_dir):
         run(box, "remove_plant", plant_id=pid, confirmed=False)
     run(box, "remove_plant", plant_id=pid, confirmed=True)
     assert storage.read()["plants"] == [] and box.actions[-1] == "Removed: Basil"
+
+
+def test_list_filter_and_overview(data_dir):
+    box = Toolbox(TODAY)
+    run(box, "add_plant", name="Thirsty", species="pothos", where="in", pot="plastic", pot_width_in=6, soil="regular",
+        last_watered="2026-09-01")
+    run(box, "add_plant", name="Fine", species="snake", where="in", pot="plastic", pot_width_in=6, soil="cactus",
+        last_watered="2026-09-25")
+    overdue = run(box, "list_plants", filter="overdue")
+    assert [p["name"] for p in overdue["plants"]] == ["Thirsty"]
+    assert overdue["plants"][0]["hydration"] == "Dehydrated, overdue"
+    assert run(box, "list_plants")["count"] == 2
+    with pytest.raises(ToolError, match="Unknown filter"):
+        box._list_plants("thirsty")
+    ov = run(box, "garden_overview")
+    assert ov["total_plants"] == 2 and ov["hydrated_percent"] == 50 and ov["overdue"] == 1
+
+
+def test_writes_refresh_excel_copy(data_dir):
+    import zipfile
+    box = Toolbox(TODAY)
+    run(box, "add_plant", name="Basil", species="basil", where="out", pot="plastic", pot_width_in=6, soil="regular")
+    sheet = zipfile.ZipFile(data_dir / "plants.xlsx").read("xl/worksheets/sheet1.xml").decode()
+    assert "Basil" in sheet

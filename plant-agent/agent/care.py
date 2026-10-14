@@ -237,6 +237,50 @@ def add_note(p: dict, today: str, text: str) -> dict:
     return np
 
 
+# ---------- hydration, filters and overview (same rules as the web app's header boxes and Dashboard tab) ----------
+HYDRATION = {"ok": "hydrated", "snooze": "hydrated", "today": "drying", "late": "dehydrated", "new": "not_tracked"}
+HYDRATION_LABEL = {"hydrated": "Hydrated", "drying": "Drying, check today",
+                   "dehydrated": "Dehydrated, overdue", "not_tracked": "Not tracked yet"}
+FILTERS = {  # the web app's clickable Overdue / Check today / To fertilize boxes
+    "overdue": lambda p, today: water_status(p, today)["kind"] == "late",
+    "check_today": lambda p, today: water_status(p, today)["kind"] in ("today", "new"),
+    "fertilize": lambda p, today: feed_status(p, today)["kind"] == "due",
+}
+
+
+def hydration(p: dict, today: str) -> str:
+    """hydrated (incl. 'still damp' rechecks), drying (check today), dehydrated (overdue) or not_tracked."""
+    return HYDRATION[water_status(p, today)["kind"]]
+
+
+def needs_attention(p: dict, today: str) -> bool:
+    return water_status(p, today)["kind"] in ("late", "today", "new") or feed_status(p, today)["kind"] == "due"
+
+
+def percent(n: int, total: int) -> int:
+    return js_round(n / total * 100) if total else 0
+
+
+def overview(plants: list[dict], today: str) -> dict:
+    """The numbers on the web app's Dashboard tab."""
+    total = len(plants)
+    counts = {k: sum(hydration(p, today) == k for p in plants) for k in HYDRATION_LABEL}
+    tracked = [ws["frac"] for ws in (water_status(p, today) for p in plants) if ws["kind"] != "new"]
+    attention = sum(needs_attention(p, today) for p in plants)
+    return {
+        "total_plants": total,
+        "hydrated_percent": percent(counts["hydrated"], total),
+        "hydration": [{"status": k, "label": HYDRATION_LABEL[k], "plants": counts[k], "percent": percent(counts[k], total)}
+                      for k in HYDRATION_LABEL],
+        "need_attention": attention,
+        "need_attention_percent": percent(attention, total),
+        "overdue": sum(FILTERS["overdue"](p, today) for p in plants),
+        "check_today": sum(FILTERS["check_today"](p, today) for p in plants),
+        "to_fertilize": sum(FILTERS["fertilize"](p, today) for p in plants),
+        "avg_moisture_left_percent": js_round(sum(tracked) / len(tracked) * 100) if tracked else None,
+    }
+
+
 # ---------- descriptions for the agent ----------
 def status_text(p: dict, today: str) -> str:
     ws = water_status(p, today)
@@ -264,6 +308,7 @@ def feed_text(p: dict, today: str) -> str:
 def summarize(p: dict, today: str) -> dict:
     sp = profile(p)
     learned = p.get("learned") or 1
+    ws = water_status(p, today)
     return {
         "id": p["id"],
         "name": p["name"],
@@ -274,7 +319,9 @@ def summarize(p: dict, today: str) -> dict:
         "soil": p.get("soil", "regular"),
         "last_watered": p.get("lastWatered"),
         "watering": status_text(p, today),
-        "interval_days_now": water_status(p, today)["iv"],
+        "hydration": HYDRATION_LABEL[hydration(p, today)],
+        "moisture_left_percent": None if ws["kind"] == "new" else js_round(ws["frac"] * 100),
+        "interval_days_now": ws["iv"],
         "water_when": sp["dry"],
         "water_amount": amount(p)["short"],
         "fertilizer": feed_text(p, today),

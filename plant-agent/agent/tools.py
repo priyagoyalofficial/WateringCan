@@ -15,8 +15,21 @@ _date = {"type": "string", "description": "ISO date YYYY-MM-DD. Omit for today."
 TOOLS: list[dict] = [
     {
         "name": "list_plants",
-        "description": "List every plant with its watering status, next soil-check date, water amount and fertilizer status. "
-                       "Call this first whenever you need plant ids or need to know what's due.",
+        "description": "List plants with their watering status, hydration, moisture left, next soil-check date, water amount "
+                       "and fertilizer status. Call this first whenever you need plant ids or need to know what's due. "
+                       "Use filter to get only some plants, matching the web app's header boxes: 'overdue' (past their check date), "
+                       "'check_today' (due for a soil check today, or no watering logged yet), 'fertilize' (fertilizer due).",
+        "input_schema": {
+            "type": "object",
+            "properties": {"filter": {"type": "string", "enum": list(care.FILTERS)}},
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "garden_overview",
+        "description": "The numbers on the web app's Dashboard: how many plants and what percent are hydrated, drying (check today), "
+                       "dehydrated (overdue) or not tracked yet; how many need attention; overdue, check-today and to-fertilize counts; "
+                       "and average moisture left. Use it for 'how are my plants doing' or percentage questions.",
         "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
     },
     {
@@ -188,9 +201,18 @@ class Toolbox:
         return result["plant"]
 
     # --- tools ---
-    def _list_plants(self) -> dict:
+    def _list_plants(self, filter: str | None = None) -> dict:
         plants = storage.read()["plants"]
-        return {"today": self.today, "count": len(plants), "plants": [care.summarize(p, self.today) for p in plants]}
+        if filter:
+            if filter not in care.FILTERS:
+                raise ToolError(f"Unknown filter '{filter}'. Use one of: {', '.join(care.FILTERS)}.")
+            plants = sorted((p for p in plants if care.FILTERS[filter](p, self.today)),
+                            key=lambda p: care.water_status(p, self.today)["d"])
+        return {"today": self.today, "filter": filter or "none", "count": len(plants),
+                "plants": [care.summarize(p, self.today) for p in plants]}
+
+    def _garden_overview(self) -> dict:
+        return {"today": self.today, **care.overview(storage.read()["plants"], self.today)}
 
     def _get_plant(self, plant_id: str) -> dict:
         p = self._find(storage.read()["plants"], plant_id)

@@ -1,7 +1,8 @@
-"""data/plants.json: where plants are stored.
+"""data/plants.json: where plants are stored, shared with the web app (server.py).
 
 Writes are atomic (temp file + rename), keep the previous version as plants.json.bak,
 and carry a revision number so a stale writer can be refused instead of overwriting newer changes.
+Every write also refreshes data/plants.xlsx, the Excel copy.
 """
 from __future__ import annotations
 
@@ -13,6 +14,7 @@ import threading
 from typing import Callable
 
 from .config import DATA_DIR, PLANTS_PATH
+from .excel import write_xlsx
 
 _lock = threading.RLock()
 
@@ -43,6 +45,10 @@ def write(plants: list[dict], expected_rev: int | None = None) -> int:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump({"rev": rev, "plants": plants}, f, ensure_ascii=False, indent=1)
         os.replace(tmp, PLANTS_PATH)
+        try:
+            write_xlsx(plants, DATA_DIR / "plants.xlsx")
+        except PermissionError:
+            pass  # open in Excel; plants.json is saved and the next write refreshes the copy
         return rev
 
 

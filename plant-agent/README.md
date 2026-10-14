@@ -1,6 +1,6 @@
 # Watering Can agent
 
-The agent version of Watering Can, kept separate from the web app in the folder above. A Claude-powered plant-care agent for indoor and outdoor plants in Anaheim, CA (USDA zone 10b). Talk to it in the terminal:
+The agent version of Watering Can. It shares its plants with the web app in the folder above, so you can log care in either one. A Claude-powered plant-care agent for indoor and outdoor plants in Anaheim, CA (USDA zone 10b). Talk to it in the terminal:
 
 ```
 you> Watered the monstera and the pothos. The snake plant was still damp.
@@ -17,7 +17,9 @@ What it does:
 - **Adds new plants**, and looks up care needs on the web for plants it doesn't know.
 - **Diagnoses problems from a photo** together with that plant's watering history, and saves a note.
 - **Checks today's weather** when it matters, for example heat or Santa Ana winds drying outdoor pots.
-- **Emails you a morning reminder** of what to check, with a weather note.
+- **Answers "how are my plants doing?"** with the same numbers as the web app's Dashboard: % hydrated, drying, dehydrated (overdue) and not tracked, how many need attention, and average moisture left.
+- **Filters like the web app's header boxes:** ask for just the overdue plants, the ones to check today, or the ones to fertilize.
+- **Emails you a morning reminder** of what to check, with your hydration summary and a weather note.
 
 ## Setup (Windows)
 
@@ -44,6 +46,8 @@ python -m venv .venv
 |---|---|
 | `/photo PATH [message]` | Send a photo, e.g. `/photo C:\pics\fig.jpg brown spots on my fiddle leaf` (under 5 MB) |
 | `/plants` | Quick list of what's due, without calling Claude |
+| `/plants overdue`, `/plants today`, `/plants fertilize` | Only those plants, like clicking the web app's header boxes |
+| `/dashboard` | Hydration percentages and counts, like the web app's Dashboard tab |
 | `/new` | Start a new conversation |
 | `/quit` | Exit |
 
@@ -53,7 +57,7 @@ To load plants from a backup file downloaded from the web app (the **Download ba
 
 `daily.bat` works out what's due today, asks Claude for a short note based on the Anaheim forecast, and emails it.
 
-To set up email, fill in the `SMTP_*` and `REMINDER_TO` lines in `.env`. Gmail needs an [app password](https://myaccount.google.com/apppasswords). Without email set up, reminders are saved to `data/reminders/`.
+To set up email, fill in the `SMTP_*` and `REMINDER_TO` lines in `.env`. Gmail needs an [app password](https://myaccount.google.com/apppasswords). Without email set up, reminders are saved to `data/reminders/` in the project folder.
 
 Try it first:
 
@@ -64,7 +68,7 @@ Try it first:
 Then schedule it for 7:30 every morning (run once in a terminal):
 
 ```
-schtasks /Create /SC DAILY /ST 07:30 /TN "Watering Can reminder" /TR "\"C:\Projects\Hobbies\Gardening\plant-agent\daily.bat\""
+schtasks /Create /SC DAILY /ST 07:30 /TN "Watering Can reminder" /TR "\"C:\Projects\Agora\WateringCan\plant-agent\daily.bat\""
 ```
 
 The PC has to be on at that time. To stop the reminder: `schtasks /Delete /TN "Watering Can reminder"`.
@@ -89,7 +93,8 @@ The PC has to be on at that time. To stop the reminder: `schtasks /Delete /TN "W
 `agent/assistant.py` runs a tool-use loop on Claude Opus 5 with adaptive thinking.
 
 - **Its tools** (`agent/tools.py`) are its only way to read or change plant data:
-  - `list_plants`, `get_plant`
+  - `list_plants` (optionally filtered: `overdue`, `check_today`, `fertilize`), `get_plant`
+  - `garden_overview`, the Dashboard numbers
   - `log_care`, `add_plant`, `update_plant`, `add_note`
   - `remove_plant`, which only runs after you confirm
 - **Web search** runs on Anthropic's servers. The agent uses it for plant research and the Anaheim weather check.
@@ -99,6 +104,7 @@ The PC has to be on at that time. To stop the reminder: `schtasks /Delete /TN "W
 
 - **Plants** are saved in `data/plants.json` in the project folder above this one, the same file the web app uses, so both always show the same plants. The previous version is kept as `plants.json.bak`, so an unwanted change can be undone.
 - **Reminders** are saved in that same `data/reminders/` folder.
+- **`data/plants.xlsx`** is rewritten after every change the agent or the web app makes: an Excel copy with a Plants sheet and a Log sheet, for reading only.
 - **`data/` and `.env` are git-ignored.** Your plants and your API key stay out of the repo.
 
 ## Project layout
