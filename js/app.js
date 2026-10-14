@@ -1,5 +1,5 @@
 /* ---------- state ---------- */
-let plants = [], pending = {}, sheetId = null;
+let plants = [], pending = {}, sheetId = null, storeState = 'loading'; // loading | ok | offline
 const examples = [
   {id:'ex1',name:'Kitchen pothos',species:'pothos',where:'in',spot:'north window',pot:'plastic',size:6,soil:'regular',lastWatered:addDays(TODAY,-10),lastFed:addDays(TODAY,-40),learned:1,log:[],example:true},
   {id:'ex2',name:'Patio lemon',species:'citrus',where:'out',spot:'south patio',pot:'terracotta',size:14,soil:'regular',lastWatered:addDays(TODAY,-4),lastFed:addDays(TODAY,-12),learned:1,log:[],example:true},
@@ -8,9 +8,7 @@ const examples = [
 const showing = ()=> plants.length ? plants : examples;
 
 /* ---------- persistence ---------- */
-function save(){
-  if (!Store.saveAll(plants)) showBanner(`<strong>Couldn't save.</strong> This browser is blocking storage (private window or site data turned off). Changes will be lost when you close the page.`);
-}
+function save(){ Store.saveAll(plants); }
 function upsertLocal(p){ const i=plants.findIndex(x=>x.id===p.id); if(i<0) plants.push(p); else plants[i]=p; render(); }
 function newId(){ return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function pushLog(p, entry){ p.log = [entry, ...(p.log||[])].slice(0,80); }
@@ -136,7 +134,7 @@ function seasonLine(){
 
 function showBanner(html){ const b=document.getElementById('banner'); b.innerHTML=html; b.hidden=!html; }
 function updateBanner(){
-  if (!Store.available) showBanner(`<strong>Saving is blocked in this browser.</strong> You can try the app, but anything you add disappears when you close the page.`);
+  if (storeState==='offline') showBanner(`<strong>Not connected, so nothing will be saved.</strong> Open Watering Can by double-clicking <b>start.bat</b> in the project folder and keep its window open. Your plants are saved in <b>data\\plants.json</b>.`);
   else if (!plants.length) showBanner(`<strong>These three plants are examples.</strong> Add your first plant and they'll disappear.`);
   else showBanner('');
 }
@@ -408,11 +406,20 @@ dataMsg.addEventListener('click', e=>{
 });
 
 /* ---------- boot ---------- */
-plants = Store.load();
-seasonLine(); render(); updateBanner();
-// Keep other open tabs in sync
-window.addEventListener('storage', e=>{
-  if (e.key!==Store.KEY) return;
-  plants = Store.load(); render(); updateBanner();
+function replacePlants(list){
+  plants = list; render(); updateBanner();
   if (sheetId) plants.some(p=>p.id===sheetId) ? openSheet(sheetId) : closeSheet();
+}
+Store.onConflict(list=>{
+  replacePlants(list);
+  showBanner(`<strong>Your plants were changed somewhere else</strong> (another tab or the plant agent), so the page loaded the latest version. Please redo your last change.`);
 });
+Store.onError(()=>{ storeState='offline'; updateBanner(); });
+Store.onExcelLocked(()=>showBanner(`<strong>Saved, but plants.xlsx wasn't updated</strong> because it's open in Excel. Close it and the next change will update it.`));
+
+seasonLine(); render();
+Store.load()
+  .then(list=>{ storeState='ok'; replacePlants(list); })
+  .catch(()=>{ storeState='offline'; render(); updateBanner(); });
+// Pick up changes from another tab or the plant agent when you come back to this page
+window.addEventListener('focus', ()=>{ Store.refresh().then(list=>{ if (list) replacePlants(list); }).catch(()=>{}); });
