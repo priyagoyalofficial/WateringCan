@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Watering and fertilizing tracker for indoor and outdoor plants in Anaheim, CA (zone 10b).">
+<title>Watering Can</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3C11 11 8 15 8 20a8 8 0 0 0 16 0c0-5-3-9-8-17z' fill='%23D8452F'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Karla:wght@400;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="hgroup">
+      <span class="eyebrow" id="dateline">Anaheim · USDA zone 10b</span>
+      <h1>Watering Can</h1>
+      <p class="season" id="season"></p>
+    </div>
+    <div class="tally" id="tally"></div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="tabs" role="tablist" aria-label="Views">
+    <button type="button" role="tab" id="t-plants" data-tab="plants" aria-controls="tab-plants" aria-selected="true">Plants</button>
+    <button type="button" role="tab" id="t-cal" data-tab="cal" aria-controls="tab-cal" aria-selected="false" tabindex="-1">Calendar</button>
+  </div>
+
+  <div id="tab-cal" role="tabpanel" aria-labelledby="t-cal" hidden>
+    <div class="calwrap">
+      <section class="calmain">
+        <div class="calbar">
+          <h2 id="calTitle">Month</h2>
+          <div class="acts">
+            <button class="btn" type="button" data-nav="prev" aria-label="Previous month">&lsaquo; Prev</button>
+            <button class="btn" type="button" data-nav="today">Today</button>
+            <button class="btn" type="button" data-nav="next" aria-label="Next month">Next &rsaquo;</button>
+          </div>
+        </div>
+        <p class="legend" aria-label="Calendar key">Key:
+          <span class="ev">Check soil, water if dry</span><span class="ev f">Fertilize</span><span class="ev late">Overdue</span><span class="ev done">&check; Watered (logged)</span><span class="ev s done">Was still damp</span></p>
+        <div class="wkhead" aria-hidden="true"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+        <div class="cal" id="cal"></div>
+        <p class="meta">Future dates are estimates. They move each time you log a watering or tap Still damp.</p>
+      </section>
+      <aside class="panel" id="dayDetail" aria-live="polite"></aside>
+    </div>
+  </div>
+
+  <div id="tab-plants" role="tabpanel" aria-labelledby="t-plants">
+  <div class="layout">
+    <div class="col">
+      <section aria-labelledby="h-att">
+        <div class="sec-head"><h2 id="h-att">Needs you today</h2><span class="eyebrow" id="att-count"></span></div>
+        <div class="tags" id="attention"></div>
+      </section>
+
+      <section aria-labelledby="h-all">
+        <div class="sec-head"><h2 id="h-all">Everything else</h2><span class="eyebrow">sorted by next check</span></div>
+        <div class="tags" id="rest"></div>
+      </section>
+    </div>
+
+    <aside>
+      <form class="panel" id="addForm" autocomplete="off">
+        <h2>Add a plant</h2>
+        <div class="field">
+          <label for="f-species">What is it?</label>
+          <select id="f-species"></select>
+        </div>
+        <div class="field" id="otherBox" hidden>
+          <label for="f-other">Plant name</label>
+          <input type="text" id="f-other" placeholder="e.g. Hoya kerrii, Staghorn fern">
+          <div class="field" id="manualDaysBox">
+            <label for="f-days">Water roughly every … days (spring, indoors)</label>
+            <input type="number" id="f-days" min="1" max="60" value="7">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-name">Nickname</label>
+          <input type="text" id="f-name" placeholder="e.g. Kitchen pothos">
+        </div>
+        <div class="field">
+          <span class="lbl">Where does it live?</span>
+          <div class="seg" role="radiogroup">
+            <label><input type="radio" name="where" id="f-in" value="in" checked><span>Indoors</span></label>
+            <label><input type="radio" name="where" id="f-out" value="out"><span>Outdoors</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-spot">Spot</label>
+          <input type="text" id="f-spot" placeholder="e.g. east window, back patio">
+        </div>
+        <div class="row2">
+          <div class="field"><label for="f-pot">Pot</label>
+            <select id="f-pot">
+              <option value="plastic">Plastic / glazed</option>
+              <option value="terracotta">Terracotta</option>
+              <option value="selfwater">Self-watering</option>
+              <option value="ground">In the ground</option>
+            </select></div>
+          <div class="field"><label for="f-size">Pot width</label>
+            <select id="f-size"></select></div>
+        </div>
+        <div class="field"><label for="f-soil">Soil</label>
+          <select id="f-soil">
+            <option value="regular">Regular potting mix</option>
+            <option value="chunky">Chunky / aroid mix</option>
+            <option value="cactus">Cactus &amp; succulent mix</option>
+            <option value="bark">Orchid bark</option>
+            <option value="leca">LECA / semi-hydro</option>
+            <option value="garden">Garden soil</option>
+          </select></div>
+        <div class="field">
+          <label for="f-last">Last watered</label>
+          <input type="date" id="f-last">
+          <span class="hint">Leave blank if you don't remember. You'll log the first watering from its card.</span>
+        </div>
+        <button class="btn water" type="submit" id="addBtn">Add plant</button>
+        <p class="msg" id="addMsg" role="status"></p>
+      </form>
+
+      <details class="tips" id="tips">
+        <summary>Why plants die, and how this helps</summary>
+        <div class="tip"><b>The date tells you when to check, not when to pour</b><p>Do the finger test first. Push a finger into the soil up to the depth the card shows. Still damp? Tap <em>Still damp</em> and the app checks back in a couple of days. Most overwatering happens when people water on a fixed schedule.</p></div>
+        <div class="tip"><b>How much to pour</b><p>Each card shows an amount worked out from the pot width, about a quarter of the pot's volume. A 6-inch pot takes about 1¾ cups. Measure it a few times with a measuring cup until you can judge it by eye. Always empty the saucer after 15 minutes. A pot left sitting in runoff stays waterlogged no matter how carefully you measured.</p></div>
+        <div class="tip"><b>It learns your home</b><p>Each time you report soil that's still damp or bone dry, that plant's schedule shifts. After a few waterings it fits your windows and your pots, not an average house.</p></div>
+        <div class="tip"><b>Your chunky mix turning hydrophobic</b><p>Peat and bark repel water once they dry out completely, so the water runs straight down the sides. Soak the pot from the bottom for 20–30 minutes, or water twice, 5 minutes apart. Adding coco coir in place of some of the peat also helps it take up water again.</p></div>
+        <div class="tip"><b>Zone 10b seasons</b><p>Hot, dry summers and fall Santa Ana winds dry pots quickly. Plants drink less December through February. The schedule adjusts by month, and fertilizing pauses in winter.</p></div>
+      </details>
+
+      <section class="panel" aria-labelledby="h-data">
+        <h2 id="h-data">Your data</h2>
+        <p class="meta">Your plants are saved in this browser only. Download a backup now and then. Restore it to move to another device or to recover after clearing browser data.</p>
+        <div class="dataacts">
+          <button class="btn" type="button" id="exportBtn">Download backup</button>
+          <button class="btn" type="button" id="importBtn">Restore from backup</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+        </div>
+        <p class="msg" id="dataMsg" role="status"></p>
+      </section>
+    </aside>
+  </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-title"></div></div>
+
+<script src="js/store.js"></script>
+<script src="js/care.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

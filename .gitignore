@@ -1,0 +1,22 @@
+# Secrets
+.env
+
+# Your plant data and reminders (personal; back up separately)
+data/
+watering-can-backup-*.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
